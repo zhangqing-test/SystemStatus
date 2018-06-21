@@ -691,4 +691,10 @@ public class OAServiceImpl implements OAService {
 		return manager;
 	}
 
+	@SystemServiceLog()
+	public Boolean createAccount(String str) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
