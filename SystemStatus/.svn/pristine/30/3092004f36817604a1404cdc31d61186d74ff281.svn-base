@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.mapper.HardwareUpdateMapper">
+
+	<select id="queryAutoCompleteName" resultType="String">
+		SELECT
+			TOP 8 name
+		FROM
+			hardware_update
+		<if test="name != null">
+		WHERE
+			name LIKE '%'+#{name}+'%'
+		</if>
+		ORDER BY
+			datetime DESC
+	</select>
+	
+
+</mapper>

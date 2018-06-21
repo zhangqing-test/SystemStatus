@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.mapper.ServicesMapper">
+	
+	<select id="selectInfluenceNames" resultType="Services">
+		SELECT
+			id AS id,
+			hardware_id AS hardwareId,
+			name,
+			yt,
+			jk,
+			type,
+			space_name AS spaceName,
+			cpu_level AS cpuLevel,
+			memory_level AS memoryLevel,
+			space_level AS spaceLevel,
+			first_manager AS firstManager,
+			second_manager AS secondManager,
+			third_manager AS thirdManager,
+			port,
+			restart_bat AS restartBat,
+			comments,
+			request_id AS requestId,
+			status,
+			datetime,
+			calc_type AS calcType,
+			message
+		FROM
+			services
+		WHERE
+			id IN (
+				SELECT
+					services_id
+				FROM
+					services_influence
+				WHERE
+					relation_id = #{id}
+				AND type = #{type}
+			)
+	</select>
+	
+	<select id="selectAffectServices" resultType="java.util.Map">
+		SELECT
+			b.name AS servicesName,
+			a.name AS name,
+			a.content AS content
+		FROM
+			affect_services AS a
+		LEFT JOIN services AS b ON a.affect_services_id = b.id
+		WHERE
+			a.services_id = #{id}
+	</select>
+
+</mapper>

@@ -1,0 +1,297 @@
+$(document).ready(function() {
+	// modal btn start
+	$(".detail").on("click",function(){
+		var $temp = $(this);
+		var id=$temp.attr("id");	
+		var vip=$temp.attr("ip");
+		var name = $temp.attr("name");
+		var ip = "<p class=\"text-left\"><strong>IP:</strong>" + $temp.attr("ip") + "</p>";
+		var cpu = "<p class=\"text-left\"><strong>CPU:</strong>" + $temp.attr("cpu") + "%</p>";
+		var memoryUsed = "<p class=\"text-left\"><strong>已用内存:</strong>" + Math.round(($temp.attr("memoryUsed")/$temp.attr("memoryTotal"))*100).toFixed() + "%</p>";
+		var btn = "<p class=\"text-left\"><strong>进程资源显示:</strong></p>";
+		var processtab="<div>" +
+		"<table class='table table-responsive input-sm'>" +
+		"<thead><tr>" +
+		"<th class='col-xs-1 col-sm-1 col-lg-1'>PID</th>" +
+		"<th class='col-xs-2 col-sm-2 col-lg-2'>进程名称</th>" +
+		"<th class='col-xs-2 col-sm-2 col-lg-2'>用户</th>" +
+		"<th class='col-xs-2 col-sm-2 col-lg-2'>内存</th>" +
+		"<th class='col-xs-2 col-sm-2 col-lg-2'>内存占用</th>" +
+		"</tr></thead><tbody>";
+		
+		
+		//		var memoryTotal = "<p class=\"text-left\"><strong>总内存:</strong>" + parseFloat(($temp.attr("memoryTotal")/1024).toFixed(2)) + "GB</p>";
+//		var memoryFree = "<p class=\"text-left\"><strong>可用内存:</strong>" + Math.round((($temp.attr("memoryTotal")-$temp.attr("memoryUsed"))/$temp.attr("memoryTotal"))*100).toFixed() + "%</p>";
+		
+		var json = $.parseJSON($temp.attr("space"));
+		var space = "";
+		
+		$.each(json,function(index, obj){
+//			space += "<p class=\"text-left\"><strong>" + index + "盘总量:</strong>" + parseFloat((obj.totalSpace/1024).toFixed(2)) + "GB</p>";
+//			space += "<p class=\"text-left\"><strong>" + index + "盘已用:</strong>" + parseFloat((obj.usedSpace/1024).toFixed(2)) + "GB</p>";
+			space += "<p class=\"text-left\"><strong>" + index + "盘剩余:</strong>" + parseFloat(((obj.totalSpace-obj.usedSpace)/1024).toFixed(2)) + "GB</p>";
+		});
+		
+		var options = {
+				backdrop:"static",
+				keyboard:false
+			};
+		
+		var msgFlag = $temp.attr("message");
+		var message;
+		if (msgFlag == "true") {
+			message = "<p class=\"text-left\"><strong>短信通知:</strong><input type=\"checkbox\" name=\"message\" checked  data-size=\"small\"/></p>";
+		} else {
+			message = "<p class=\"text-left\"><strong>短信通知:</strong><input type=\"checkbox\" name=\"message\" data-size=\"small\"/></p>";
+		}
+		
+		$("#myModalLabel").empty().text(name);
+//		$("#myModal").find(".modal-body").empty().append(ip).append(cpu).append(memoryUsed).append(memoryTotal).append(space);
+		
+		$.ajax({
+			url:base + "/OA/services/processget",
+			data:{id:id,
+				  ip:vip},
+			dataType: 'json',
+			async : false,
+			success:function(resMsg) {
+				console.log(resMsg);
+				$.each(resMsg,function(i,actObj){
+					if(actObj == null){
+						processtab+= "<tr class='accordion-heading'>当前还未添加监控进程！</tr>";
+					}else{
+						processtab+="<tr class='accordion-heading'><td class='col-xs-1 col-sm-1 col-lg-1'>"+actObj.pid+"</td>" +
+								"<td class='col-xs-2 col-sm-2 col-lg-2'>"+actObj.name+"</td>" +
+								"<td class='col-xs-2 col-sm-2 col-lg-2'>"+actObj.user+"</td>" +
+								"<td class='col-xs-2 col-sm-2 col-lg-2'>"+actObj.memSize+"</td>" +
+								"<td class='col-xs-2 col-sm-2 col-lg-2'>"+actObj.memUse+"</td>" +
+								"</tr>";
+					}
+					
+				})
+				processtab+="</tbody></table></div>";
+			}
+		}) 
+		$("#myModal").find(".modal-body").empty().append(ip).append(cpu).append(memoryUsed).append(space).append(message).append(btn).append(processtab);
+
+		$.ajax({
+			url:base + "/queryTypeUpdateInfo",
+			data:{id:id,type:1},
+			success:function(data) {
+				var table="<div id='list'>" +
+				"<table class='table table-responsive input-sm'>" +
+				"<caption>"+
+				"更新记录"+
+				"</caption>"+
+				"<thead><tr>" +
+				"<th class='col-xs-1 col-sm-1 col-lg-1'>姓名</th>" +
+				"<th class='col-xs-2 col-sm-2 col-lg-2'>时间</th>" +
+				"<th class='col-xs-2 col-sm-2 col-lg-2'>更新内容</th>" +
+				"<th class='col-xs-2 col-sm-2 col-lg-2'>影响服务</th>" +
+				"</tr></thead>";
+				for ( var i = 0; i < data.length; i++) {
+					table+="<tr class='accordion-heading'>" +
+							"<td class='col-xs-1 col-sm-1 col-lg-1'>"+data[i].name+"</td>" +
+							"<td class='col-xs-2 col-sm-2 col-lg-2'>"+data[i].time+"</td>" +
+							"<td class='col-xs-2 col-sm-2 col-lg-2'>"+data[i].updateInfo+"</td>" +
+							"<td class='col-xs-2 col-sm-2 col-lg-2'>"+data[i].fluence+"</td>" +
+							"</tr>";
+				}
+				table+="<tbody></table></div>";
+				$("#myModal").find(".modal-body").append(table);
+			}		
+			
+		});
+		$("[name='message']").bootstrapSwitch({
+			 onText:'ON',  
+             offText:'OFF',
+        	 onColor:"success",  
+             offColor:"danger",  
+             //size:"small", 
+             onSwitchChange:function(event,state){ 
+            	 var datas = {};
+            	 datas.id=$temp.attr("id");
+                 if(state==true){  
+                	 datas.message=true;
+                 }else{  
+                	 datas.message=false;
+                 }  
+//                 console.log(data);
+                 $.post("changeServerMessage", datas, function(data,status){
+                	if (data) {
+                		$temp.attr("message",datas.message);
+					} else {
+						console.log(datas.id + ":" + datas.message + ":修改失败");
+					}
+                 });
+                 
+             } 
+		});
+		$("#myModal").modal(options);
+		
+	});
+	// modal btn end
+	var colors=new Array("aqua","black","blue","fuchsia","gray","green","lime","maroon","navy","olive","orange","purple","red","silver","teal","yellow");
+	$(".relation").on("click",function(){
+		var check=$("tbody :checked");	
+		var ids = new Array();
+		var graph = new Springy.Graph(); 
+		if(check.length>=2){
+			check.each(function(){
+				ids.push($(this).val());	   
+			 });
+			
+			$.ajax({
+				url:base + "/serverInfo/getServiceRelationList",
+				data:{ids:ids},
+				success:function(data) {
+					var lableTemp;
+					var temp="";		
+					for ( var int = 0; int < data.length; int++) {
+						var map=data[int];							
+						for(var key in map){					
+							var value = map[key];
+							if(key==temp){
+								var label_ = graph.newNode({label: value});
+								graph.newEdge(lableTemp, label_, {color: colors[Math.floor(Math.random()*16)]}); 
+							}else{
+								var lable = graph.newNode({label: key});
+								var label_ = graph.newNode({label: value});
+								graph.newEdge(lable, label_, {color: colors[Math.floor(Math.random()*16)]}); 
+								lableTemp=lable;
+								temp=key;
+							}						
+							
+						}
+					}
+					
+				}
+			});			 
+	
+		}else{
+			alert("请至少选择两项！");
+			return;
+		}
+		
+		$("#myModalLabel").empty().text("系统关系图");
+		var options = {
+				backdrop:"static",
+				keyboard:false
+			};
+		
+		var canvas="<canvas id='springydemo' width='550' height='480' />";
+		$("#myModal").find(".modal-body").empty().append(canvas);
+		
+		var springy = window.springy = $("#myModal").find(".modal-body").find('#springydemo').springy({ 
+		    graph: graph, 
+		    nodeSelected: function(node){ 
+		    	//alert(node.data.label);
+		    } 
+		  });
+		$("#myModal").modal(options);
+	});
+	
+	
+	
+	// 解决modal弹窗居中 start
+	$('#myModal').on('show.bs.modal', function (e) {  
+		var $this = $(this);
+        var $modal_dialog = $this.find('.modal-dialog');
+        // 关键代码，如没将modal设置为 block，则$modala_dialog.height() 为零
+        $this.css('display', 'block');
+        $modal_dialog.css({'margin-top': Math.max(0, ($(window).height() - $modal_dialog.height()) / 2) });
+    });  
+	// 解决modal弹窗居中 end
+	
+	
+	 $("#all").click(function(){
+		 var checkbox=$(":checkbox");
+		 if($(this).is(":checked")){
+			 checkbox.each(function(){
+			       $(this).prop("checked",true);
+			    });
+		 }else{
+			 checkbox.each(function(){
+			       $(this).prop("checked",false);
+			    });
+		 }
+		   
+      });
+	 
+	 $(".processbtn").click(function(){
+		 
+         var id = $(this).attr("id");
+		 var ip = $(this).attr("ip");
+		 $("#modalcheck").attr("style","");
+		 $("#modalsub").attr("style",""); 
+		 $("#myModal2").find("#tbody").html("");
+		 $.ajax({
+				url:base + "/serverInfo/getAllProcess",
+				data:{ip:ip},
+				success:function(data) {
+					var table="";
+					
+					for ( var i = 0; i < data.length; i++) {
+						var str = id+"&&"+data[i].pid+"&&"+data[i].name+"&&"+data[i].user+"&&"+data[i].memSize+"&&"+data[i].memUse;
+						table+="<tr>" +
+						        "<td><input id=\""+id+"\" type=\"checkbox\" value=\""+str+"\"></td>"+
+								"<td class='col-lg-2'>"+data[i].pid+"</td>" +
+								"<td class='col-lg-2'>"+data[i].name+"</td>" +
+								"<td class='col-lg-2'>"+data[i].user+"</td>" +
+								"<td class='col-lg-2'>"+data[i].memSize+"</td>" +
+								"<td class='col-lg-2'>"+data[i].memUse+"</td>" +
+								"</tr>";
+					}
+					$("#myModal2").find("#tbody").append(table);
+				}		
+				
+			});
+		 var options = {
+					backdrop:"static",
+					keyboard:false
+				};
+		 $("#myModal2").modal(options);
+		 
+	 });
+	
+	 $(".memorybtn").click(function(){
+		 var ip = $(this).attr("ip");
+		 $("#myModal2").find("#tbody").html("");
+		 $.ajax({
+				url:base + "/serverInfo/getMemoryList",
+				data:{ip:ip},
+				success:function(data) {
+					var table="";
+					
+					for ( var i = 0; i < data.length; i++) {
+						if(i==5){
+							break;
+						}
+						table+="<tr>" +
+								"<td class='col-lg-2'>"+data[i].pid+"</td>" +
+								"<td class='col-lg-2'>"+data[i].name+"</td>" +
+								"<td class='col-lg-2'>"+data[i].user+"</td>" +
+								"<td class='col-lg-2'>"+data[i].memSize+"</td>" +
+								"<td class='col-lg-2'>"+data[i].memUse+"</td>" +
+								"</tr>";
+					}
+					$("#myModal2").find("#tbody").append(table);
+				}		
+				
+			});
+		 var options = {
+					backdrop:"static",
+					keyboard:false
+				};
+		 $("#myModal2").modal(options);
+		 
+	 });
+	 $('#myModal2').on('show.bs.modal', function (e) {  
+			var $this = $(this);
+	        var $modal_dialog = $this.find('.modal-dialog');
+	        // 关键代码，如没将modal设置为 block，则$modala_dialog.height() 为零
+	        $this.css('display', 'block');
+	        $modal_dialog.css({'margin-top': Math.max(0, ($(window).height() - $modal_dialog.height()) / 2) });
+	    });  
+	 
+});

@@ -1,0 +1,245 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ page isELIgnored="false"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/bootstrap/bootstrap.min.css">
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/bootstrap-switch/bootstrap-switch.min.css">
+<!-- jquery -->
+<script src="${pageContext.request.contextPath}/js/jquery/jquery.min.js"></script>
+<!-- Bootstrap 核心 JavaScript 文件 -->
+<script
+	src="${pageContext.request.contextPath}/js/bootstrap/bootstrap.min.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/bootstrap-switch/bootstrap-switch.min.js"></script>
+<script
+	src="${pageContext.request.contextPath}/js/bootstrap3-typeahead/bootstrap3-typeahead.min.js"></script>
+<script src="${pageContext.request.contextPath}/js/updateHistory.js"></script>
+<title>index</title>
+</head>
+<body>
+	<div class="container">
+		<nav class="navbar navbar-default">
+		<div class="container-fluid">
+			<!-- navbar-header start -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed"
+					data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"
+					aria-expanded="false">
+					<span class="sr-only">Toggle navigation</span> <span
+						class="icon-bar"></span> <span class="icon-bar"></span> <span
+						class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand"
+					href="${pageContext.request.contextPath}/index"><span
+					class="glyphicon glyphicon-home"></span></a>
+			</div>
+			<!-- /.navbar-header end -->
+
+			<!-- navbar-collapse start -->
+			<div class="collapse navbar-collapse"
+				id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li class=""><a href="${pageContext.request.contextPath}/serverInfo/query">服务</a></li>
+					<li class=""><a href="${pageContext.request.contextPath}/net">网络</a></li>
+					<li class=""><a href="${pageContext.request.contextPath}/updateHistory">更新升级记录</a></li>
+					<li class=""><a href="${pageContext.request.contextPath}/deadlock">机构死锁</a></li>
+					<!-- 					<li><a href="#">Link test</a></li> -->
+					<!-- 					<li class="dropdown"><a href="#" class="dropdown-toggle" -->
+					<!-- 						data-toggle="dropdown" role="button" aria-haspopup="true" -->
+					<!-- 						aria-expanded="false">Dropdown test<span class="caret"></span></a> -->
+					<!-- 						<ul class="dropdown-menu"> -->
+					<!-- 							<li><a href="#">Action test</a></li> -->
+					<!-- 							<li><a href="#">Another action</a></li> -->
+					<!-- 							<li><a href="#">Something else here</a></li> -->
+					<!-- 							<li role="separator" class="divider"></li> -->
+					<!-- 							<li><a href="#">Separated link</a></li> -->
+					<!-- 							<li role="separator" class="divider"></li> -->
+					<!-- 							<li><a href="#">One more separated link</a></li> -->
+					<!-- 						</ul></li> -->
+				</ul>
+				<!-- 根据服务器名称模糊搜索记录 -->
+				<!-- <form class="navbar-form navbar-right">
+					<div class="form-group">
+						<input type="text" class="form-control" placeholder="输入名称关键字">
+					</div>
+					<button type="submit" class="btn btn-default">搜索</button>
+				</form> -->
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="${pageContext.request.contextPath}/control">后台</a></li>
+				</ul>
+			</div>
+			<!-- /.navbar-collapse -->
+		</div>
+		</nav>
+
+
+		<form id="searchForm" action="${pageContext.request.contextPath}/updateHistory" class="form-horizontal  input-sm" role="form" onsubmit="return false;">
+			<div class="form-group">
+				<label class="col-xs-2 col-sm-1 col-lg-1 control-label">类型</label>
+				<div id="aaa" class="col-xs-10 col-sm-5 col-lg-5">
+					<select id="updateType" class="form-control">
+						<option value="0">--------</option>
+						<option value="1">硬件服务器更新</option>
+						<option value="2">软件服务更新</option>
+						<option value="3">网络更新</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-2 col-sm-1 col-lg-1 control-label">名称</label>
+				<div class="col-xs-10 col-sm-5 col-lg-5">
+					<input type="text" class="form-control input-sm" id="name" data-provide="typeahead" autocomplete="off"
+						placeholder="请输入名称">
+				</div>
+			</div>
+<!-- 			<div class="form-group"> -->
+<!-- 				<label class="col-xs-2 col-sm-1 col-lg-1 control-label">ip</label> -->
+<!-- 				<div class="col-xs-10 col-sm-5 col-lg-5"> -->
+<!-- 					<input type="text" class="form-control input-sm" id="ip" data-provide="typeahead" autocomplete="off" -->
+<!-- 						placeholder="请输入ip"> -->
+<!-- 				</div> -->
+<!-- 			</div> -->
+			<div class="form-group">
+				<div class="col-xs-offset-2 col-sm-offset-1 col-xs-10 col-sm-10">
+					<button id="searchBtn" class="btn btn-info">搜索</button>
+				</div>
+			</div>
+		</form>
+
+		<table class="table table-responsive input-sm">
+			<caption>
+				数据列表:
+			</caption>
+			<thead>
+				<tr>
+					<th class="col-xs-5 col-sm-5 col-lg-5">创建时间</th>
+					<th class="col-xs-5 col-sm-5 col-lg-5">名称</th>
+					<th class="col-xs-2 col-sm-2 col-lg-2">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				<c:forEach var="data" items="${list }">
+					<tr>
+						<td class="col-xs-5 col-sm-5 col-lg-5"><fmt:formatDate type="both" value="${data.datetime }" /></td>
+						<td class="col-xs-5 col-sm-5 col-lg-5">${data.name }</td>
+						<td class="col-xs-2 col-sm-2 col-lg-2">
+						<button type="button" class="detail btn btn-xs btn-primary" 
+						id="${data.id }"
+						name="${data.name }"
+						updateContent="${data.updateContent }"
+						ip="${data.ip }"
+						level="${data.level }"
+						planStartTime='<fmt:formatDate type="both" value="${data.planStartTime }" />'
+						planUsedTime="${data.planUsedTime }"
+						updateStepContent="${data.updateStepContent }"
+						rollback="${data.rollback }"
+						startTime='<fmt:formatDate type="both" value="${data.startTime }" />'
+						endTime='<fmt:formatDate type="both" value="${data.endTime }" />'
+						comments="${data.comments }"
+						datetime='<fmt:formatDate type="both" value="${data.datetime }" />'
+						restartService="${data.restartService }"
+						netOff="${data.netOff }"
+						his="${data.hinfluence }"
+						sis="${data.sinfluence }"
+						nis="${data.ninfluence }"</button>详情</td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
+		
+		<!-- 模态框（Modal） -->
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		    <div class="modal-dialog">
+		        <div class="modal-content">
+		            <div class="modal-header">
+		                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		                <h4 class="modal-title" id="myModalLabel">模态框（Modal）标题</h4>
+		            </div>
+		            <div class="modal-body">
+						<form role="form">
+						  <div class="form-group">
+						    <label>名称</label>
+						    <p id="modal_name" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>ip</label>
+						    <p id="modal_ip" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>更新内容/理由</label>
+						    <p id="modal_updateContent" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>重要等级</label>
+						    <p id="modal_level" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>计划更新时间</label>
+						    <p id="modal_planStartTime" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>计划使用时间</label>
+						    <p id="modal_planUsedTime" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>更新步骤和说明</label>
+						    <p id="modal_updateStepContent" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>会影响到的服务器</label>
+						    <p id="modal_his" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>会影响到的服务</label>
+						    <p id="modal_sis" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>会影响到的网络</label>
+						    <p id="modal_nis" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>回滚方案或者操作</label>
+						    <p id="modal_rollback" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>实际更新开始时间</label>
+						    <p id="modal_startTime" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>实际更新结束时间</label>
+						    <p id="modal_endTime" class="text-muted"></p>
+						  </div>
+						  <div class="form-group">
+						    <label>更新备注</label>
+						    <p id="modal_comments" class="text-muted"></p>
+						  </div>
+						   <div class="form-group">
+						    <label></label>
+						    <p id="modal_restart" class="text-muted"></p>
+						  </div>
+						</form>
+					</div>
+		            <div class="modal-footer">
+		                <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+		            </div>
+		        </div><!-- /.modal-content -->
+		    </div><!-- /.modal -->
+		</div>
+		
+<input type="hidden" id="_type" value="${type }">
+<input type="hidden" id="_name" value="${name }">
+<input type="hidden" id="_ip" value="${ip }">
+</body>
+</html>

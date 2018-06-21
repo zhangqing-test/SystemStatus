@@ -1,0 +1,16 @@
+##开发者手机号
+devTel=17602193710
+##服务器告警累计次数
+serverWarnCount=6
+##删除历史数据/天
+cleanDate=1
+##网络告警累计次数
+pingWarnCount=10
+##网络通知二级联系人累计告警次数
+netSecondAlarmLevel=10
+##网络通知三级联系人累计告警次数
+netThirdAlarmLevel=20
+##服务器通知二级联系人累计告警次数
+serverSecondAlarmLevel=6
+##服务器通知三级级联系人累计告警次数
+serverThirdAlarmLevel=12

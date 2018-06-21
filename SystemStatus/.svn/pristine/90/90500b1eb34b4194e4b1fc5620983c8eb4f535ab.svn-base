@@ -1,0 +1,128 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+<%@ page isELIgnored="false"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<c:set var="base" scope="request"><%=request.getContextPath()%></c:set>
+<script>var base = "${base}";</script>
+<div id="page-wrapper" >
+	<div class="row">
+		<div class="col-lg-12">
+			<h4 class="page-header"><button type="button" id="return" class="btn btn-link"><p class="fa fa-angle-double-left">返回列表</p></button></h4>
+		</div>
+		<!-- /.col-lg-12 -->
+	</div>
+	<!-- /.row -->
+	<div class="row">
+		<div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">线路名称</label>
+	      <label class="col-sm-10 control-label text-muted">${data.netName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">主ip名称</label>
+	      <label class="col-sm-10 control-label text-muted">${data.ipName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">主ip地址</label>
+	      <label class="col-sm-10 control-label text-muted">${data.ip }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">副ip名称</label>
+	      <label class="col-sm-10 control-label text-muted">${data.targetIpName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">副ip地址</label>
+	      <label class="col-sm-10 control-label text-muted">${data.targetIp }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">网络策略</label>
+	      <label class="col-sm-10 control-label text-muted">
+		  <c:if test="${data.type eq 1 }">
+		  	双向
+		  </c:if>
+		  <c:if test="${data.type eq 2 }">
+		  	主到副
+		  </c:if>
+		  <c:if test="${data.type eq 3 }">
+		  	副到主
+		  </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">主ip端口</label>
+	      <label class="col-sm-10 control-label text-muted">${data.port }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">副ip端口</label>
+	      <label class="col-sm-10 control-label text-muted">${data.targetPort }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerJob }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerPhone }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerJob }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerPhone }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerName }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerJob }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerPhone }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">备注说明</label>
+	      <label class="col-sm-10 control-label text-muted">${data.comments }</label>
+	    </div>
+	</div>
+	<!-- /.row -->
+</div>
+<!-- /#page-wrapper -->
+<script type="text/javascript">
+	$("#return").on("click",function(){
+		$.ajax({
+			url:base + "/OA/net",
+			success:function(data) {
+				$("#page-wrapper").replaceWith(data);
+			}
+		})
+	})
+</script>
+
+

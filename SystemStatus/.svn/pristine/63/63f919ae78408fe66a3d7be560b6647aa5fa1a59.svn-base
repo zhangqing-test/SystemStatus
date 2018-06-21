@@ -1,0 +1,193 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+<%@ page isELIgnored="false"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<c:set var="base" scope="request"><%=request.getContextPath()%></c:set>
+<script>var base = "${base}";</script>
+<div id="page-wrapper" >
+	<div class="row">
+		<div class="col-lg-12">
+			<h4 class="page-header"><button type="button" id="return" class="btn btn-link"><p class="fa fa-angle-double-left">返回列表</p></button></h4>
+		</div>
+		<!-- /.col-lg-12 -->
+	</div>
+	<!-- /.row -->
+	<div class="row">
+		<div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">服务器名称</label>
+	      <label class="col-sm-10 control-label text-muted">${data.name }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">主机名</label>
+	      <label class="col-sm-10 control-label text-muted">${data.zjm }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">服务器属性</label>
+	      <label class="col-sm-10 control-label text-muted">
+		  <c:if test="${data.fwqsx eq 0 }">
+		  	虚拟机
+		  </c:if>
+		  <c:if test="${data.fwqsx eq 1 }">
+		  	实体机
+		  </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">用途</label>
+	      <label class="col-sm-10 control-label text-muted">${data.yt }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">域</label>
+	      <label class="col-sm-10 control-label text-muted">${data.yu }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">服务器型号</label>
+	      <label class="col-sm-10 control-label text-muted">${data.fwqxh }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">所属机房</label>
+	      <label class="col-sm-10 control-label text-muted">${data.ssjf }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">机柜</label>
+	      <label class="col-sm-10 control-label text-muted">${data.jg }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">U位</label>
+	      <label class="col-sm-10 control-label text-muted">${data.uw }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">cpu配置</label>
+	      <label class="col-sm-10 control-label text-muted">${data.cpuConfig }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">内存配置</label>
+	      <label class="col-sm-10 control-label text-muted">${data.memoryConfig }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">硬盘</label>
+	      <label class="col-sm-10 control-label text-muted">${data.yp }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">网卡</label>
+	      <label class="col-sm-10 control-label text-muted">${data.wk }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">光纤卡</label>
+	      <label class="col-sm-10 control-label text-muted">${data.gxk }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">电源</label>
+	      <label class="col-sm-10 control-label text-muted">${data.dy }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">存储</label>
+	      <label class="col-sm-10 control-label text-muted">${data.cc }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">序列号</label>
+	      <label class="col-sm-10 control-label text-muted">${data.xlh }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">购买时间</label>
+	      <label class="col-sm-10 control-label text-muted"><fmt:formatDate value="${data.gmsj }"  type="both" /></label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">过保时间</label>
+	      <label class="col-sm-10 control-label text-muted"><fmt:formatDate value="${data.gbsj }"  type="both" /></label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">选填使用年限</label>
+	      <label class="col-sm-10 control-label text-muted">${data.synx }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">杀毒软件</label>
+	      <label class="col-sm-10 control-label text-muted">${data.sdrj }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">所属机构</label>
+	      <label class="col-sm-10 control-label text-muted">${data.ssjg }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">宿主机IP</label>
+	      <label class="col-sm-10 control-label text-muted">${data.szjip }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">运行系统</label>
+	      <label class="col-sm-10 control-label text-muted">${data.yxxt }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">ip地址</label>
+	      <label class="col-sm-10 control-label text-muted">${data.ip }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerJob }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerPhone }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerJob }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerPhone }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerName }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerJob }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerPhone }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">备注说明</label>
+	      <label class="col-sm-10 control-label text-muted">${data.comments }</label>
+	    </div>
+	</div>
+	<!-- /.row -->
+</div>
+<!-- /#page-wrapper -->
+<script type="text/javascript">
+	$("#return").on("click",function(){
+		$.ajax({
+			url:base + "/OA/hardware",
+			success:function(data) {
+				$("#page-wrapper").replaceWith(data);
+			}
+		})
+	})
+</script>
+
+

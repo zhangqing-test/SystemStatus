@@ -1,0 +1,449 @@
+package com.system.quartz;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.commons.lang3.StringUtils;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.quartz.QuartzJobBean;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
+import com.system.common.constants.StatusConstants;
+import com.system.common.constants.SystemConfig;
+import com.system.common.util.IPUtil;
+import com.system.common.util.SendMsg;
+import com.system.entity.Hardware;
+import com.system.entity.Manager;
+import com.system.entity.MonitorAlarmLog;
+import com.system.entity.ServerClient;
+import com.system.entity.ServerInfo;
+import com.system.entity.Services;
+import com.system.quartz.task.LoadSystemStatusTask;
+import com.system.service.IHardwareService;
+import com.system.service.IManagerService;
+import com.system.service.IMonitorAlarmLogService;
+import com.system.service.IServerClientService;
+import com.system.service.IServerInfoService;
+import com.system.service.IServicesService;
+
+@SuppressWarnings("unused")
+public class LoadSystemStatusJob extends QuartzJobBean {
+	private static final Logger LOG = LoggerFactory.getLogger(LoadSystemStatusJob.class);
+
+	private int timeout;
+	private static int i = 0;
+
+	// 调度工厂实例化后，经过timeout时间开始执行调度
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
+	private ThreadPoolTaskExecutor taskExeutor;
+
+	private IServerInfoService serverInfoService;
+
+	private IManagerService managerService;
+
+	private IServerClientService serverClientService;
+
+	private IMonitorAlarmLogService monitorAlarmLogService;
+
+	private IHardwareService hardwareService;
+
+	private IServicesService servicesService;
+
+	@Override
+	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+		WebApplicationContext webApplicationContext = ContextLoader.getCurrentWebApplicationContext();
+		serverInfoService = webApplicationContext.getBean(IServerInfoService.class);
+		taskExeutor = webApplicationContext.getBean(ThreadPoolTaskExecutor.class);
+		managerService = webApplicationContext.getBean(IManagerService.class);
+		serverClientService = webApplicationContext.getBean(IServerClientService.class);
+		monitorAlarmLogService = webApplicationContext.getBean(IMonitorAlarmLogService.class);
+		hardwareService = webApplicationContext.getBean(IHardwareService.class);
+		servicesService = webApplicationContext.getBean(IServicesService.class);
+
+		List<ServerInfo> serverInfos = new Vector<ServerInfo>();
+		Map<Integer, Hardware> hardwareMap = new HashMap<Integer, Hardware>();
+
+		LOG.info("获取服务器状态开始>>>>>>>>>");
+		final Date date = new Date();
+		// 改版后：获取需要监控的服务
+		EntityWrapper<Services> servicesEw = new EntityWrapper<Services>();
+		servicesEw.eq("jk", true);
+		List<Services> list = servicesService.selectList(servicesEw);
+		if (null != list && list.size() > 0) {
+			for (Services services : list) {
+				Hardware hardware = hardwareMap.get(services.getHardwareId());
+				if (null == hardware) {
+					hardware = hardwareService.selectById(services.getHardwareId());
+					hardwareMap.put(hardware.getId(), hardware);
+				}
+				services.setDatetime(date);
+				LoadSystemStatusTask task = webApplicationContext.getBean(LoadSystemStatusTask.class);
+				// 执行任务
+				task.init(services, hardware, date, serverInfos);
+				taskExeutor.execute(task);
+			}
+
+			// 查看连接池中的任务是否执行完毕
+			ThreadPoolExecutor threadPoolExecutor = taskExeutor.getThreadPoolExecutor();
+			while (true) {
+				if (threadPoolExecutor.getActiveCount() == 0) {
+					LOG.info("所有的子线程都结束了！");
+					serverInfoService.insertBatch(serverInfos);
+					break;
+				}
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					LOG.error("休眠异常", e);
+				}
+			}
+
+			LOG.info("批量更新抓取时间记录开始>>>>>>>>>");
+			servicesService.updateBatchById(list);
+
+			LOG.info("分析服务器状态告警开始>>>>>>>>>");
+			Integer limit = Integer.valueOf(SystemConfig.getProperty(StatusConstants.SERVER_WARN_COUNT));
+
+			for (ServerInfo serverInfo : serverInfos) {
+				boolean flag = false;
+				Services stemp = null;
+				Hardware htemp = null;
+				for (Services services : list) {
+					if (services.getId().equals(serverInfo.getServicesId())) {
+						stemp = services;
+						htemp = hardwareMap.get(services.getHardwareId());
+					}
+				}
+
+				// 查看服务器客户端是否在正常状态(更新状态不报警)
+				EntityWrapper<ServerClient> scew = new EntityWrapper<ServerClient>();
+				scew.eq("ip", htemp.getIp());
+				ServerClient serverClient = serverClientService.selectOne(scew);
+				if (serverClient.getServerStatus() == 1) {
+
+					// 服务器类型
+					Integer type = stemp.getType();
+					// 报错查询历史记录list
+					List<ServerInfo> tempList = null;
+
+					StringBuilder message = new StringBuilder();
+					message.append(stemp.getName()).append("(").append(htemp.getIp()).append("):");
+
+					// 1 判断cpu占用率
+					Integer cpu = serverInfo.getCpu();
+					if (cpu >= stemp.getCpuLevel()) {
+						int count = 0;
+
+						if (null == tempList) {
+							Page<ServerInfo> page = new Page<ServerInfo>();
+							page.setCurrent(1);
+							page.setSize(limit);
+							page.setSearchCount(false);
+							EntityWrapper<ServerInfo> ew = new EntityWrapper<ServerInfo>();
+							ew.orderBy("datetime", false).eq("services_id", serverInfo.getServicesId());
+
+							Page<ServerInfo> selectPage = serverInfoService.selectPage(page, ew);
+							tempList = selectPage.getRecords();
+						}
+
+						if (null != tempList) {
+							for (ServerInfo serverInfotemp : tempList) {
+								if (serverInfotemp.getCpu() >= stemp.getCpuLevel()) {
+									count++;
+								}
+							}
+						}
+
+						if (count == limit) {
+							flag = true;
+							message.append("cpu占用率长时间高于" + stemp.getCpuLevel() + "%;");
+						}
+					}
+
+					// 2 判断内存使用率
+					Integer memoryTotal = serverInfo.getMemoryTotal();
+					Integer memoryUsed = serverInfo.getMemoryUsed();
+					int memory = memoryUsed * 100 / memoryTotal;
+
+					// 应用服务器
+					if (type == 1) {
+						if (memory >= stemp.getMemoryLevel()) {
+							int count = 0;
+
+							if (null == tempList) {
+								Page<ServerInfo> page = new Page<ServerInfo>();
+								page.setCurrent(1);
+								page.setSize(limit);
+								page.setSearchCount(false);
+								EntityWrapper<ServerInfo> ew = new EntityWrapper<ServerInfo>();
+								ew.orderBy("datetime", false).eq("services_id", serverInfo.getServicesId());
+
+								Page<ServerInfo> selectPage = serverInfoService.selectPage(page, ew);
+								tempList = selectPage.getRecords();
+							}
+
+							if (null != tempList) {
+								for (ServerInfo serverInfotemp : tempList) {
+									if (serverInfotemp.getMemoryUsed() * 100 / serverInfotemp.getMemoryTotal() >= stemp.getMemoryLevel()) {
+										count++;
+									}
+								}
+							}
+
+							if (count == limit) {
+								flag = true;
+								message.append("服务器内存占用率长时间高于" + stemp.getMemoryLevel() + "%;");
+							}
+						}
+					}
+
+					// 3 判断磁盘空间
+					String space = serverInfo.getSpace();
+					if (StringUtils.isNotBlank(space)) {
+						JSONObject jb = JSONObject.parseObject(space);
+						Set<String> keySet = jb.keySet();
+
+						if (type == 1) {
+							// 应用服务器
+							// 磁盘告警标识
+							boolean spaceFlag = false;
+							int count = 0;
+
+							StringBuilder sb = new StringBuilder();
+
+							for (String key : keySet) {
+								JSONObject value = jb.getJSONObject(key);
+								Integer freeSpace = value.getInteger(StatusConstants.FREE_SPACE);
+								if (freeSpace < stemp.getSpaceLevel() * 1024) {
+									spaceFlag = true;
+									sb.append(key + "盘空间剩余小于" + stemp.getSpaceLevel() + "G;");
+								}
+							}
+
+							if (spaceFlag) {
+								// 分析前几次记录
+								if (null == tempList) {
+									Page<ServerInfo> page = new Page<ServerInfo>();
+									page.setCurrent(1);
+									page.setSize(limit);
+									page.setSearchCount(false);
+									EntityWrapper<ServerInfo> ew = new EntityWrapper<ServerInfo>();
+									ew.orderBy("datetime", false).eq("services_id", serverInfo.getServicesId());
+
+									Page<ServerInfo> selectPage = serverInfoService.selectPage(page, ew);
+									tempList = selectPage.getRecords();
+								}
+
+								if (null != tempList) {
+									for (ServerInfo serverInfotemp : tempList) {
+										String spaceTemp = serverInfotemp.getSpace();
+										if (StringUtils.isNotBlank(spaceTemp)) {
+											JSONObject jbTemp = JSONObject.parseObject(spaceTemp);
+											Set<String> keySetTemp = jbTemp.keySet();
+											for (String keyTemp : keySetTemp) {
+												JSONObject value = jb.getJSONObject(keyTemp);
+												Integer freeSpace = value.getInteger(StatusConstants.FREE_SPACE);
+												if (freeSpace < stemp.getSpaceLevel() * 1024) {
+													count++;
+													break;
+												}
+											}
+
+										}
+									}
+
+									if (count == limit) {
+										flag = true;
+										message.append(sb.toString());
+									}
+								}
+							}
+
+						} else {
+							// 数据库服务器
+							for (String key : keySet) {
+								JSONObject value = jb.getJSONObject(key);
+								Integer freeSpace = value.getInteger(StatusConstants.FREE_SPACE);
+								if (freeSpace < stemp.getSpaceLevel() * 1024) {
+									flag = true;
+									message.append(key + "盘空间剩余小于" + stemp.getSpaceLevel() + "G;");
+								}
+							}
+						}
+
+					}
+					//4判断服务端口
+					String ports=serverInfo.getPortStatus();
+					Map<String, Boolean> map=JSON.parseObject(ports, Map.class);
+					if(null!=ports){
+						for (String port : map.keySet()) {
+							if(!map.get(port)){
+								message.append("端口："+port+"不通！");
+							}
+						}
+					}
+					if (flag) {
+						// 告警
+						LOG.error("服务器告警:" + message.toString());
+						MonitorAlarmLog monitorAlarmLog = new MonitorAlarmLog();
+						monitorAlarmLog.setRelationId(Integer.valueOf(stemp.getId()));
+						monitorAlarmLog.setAlarmTime(date);
+						monitorAlarmLog.setStatus(1);
+						monitorAlarmLog.setType(1);
+						monitorAlarmLog.setAlarmContent(message.toString());
+						monitorAlarmLogService.insert(monitorAlarmLog);
+
+						// 短信通知开启
+						if (stemp.isMessage()) {
+							message.append("详情和修改通知地址:").append(StatusConstants.SERVER_LINK);
+							String msg = message.toString();
+
+							EntityWrapper<MonitorAlarmLog> malew = new EntityWrapper<MonitorAlarmLog>();
+							malew.eq("relation_id", stemp.getId());
+							malew.eq("status", 1);
+							List<MonitorAlarmLog> lists = monitorAlarmLogService.selectList(malew);
+
+							if (lists == null || (null != lists && lists.size() < Integer.valueOf(SystemConfig.getProperty(StatusConstants.SERVER_SECOND_LEVEL)))) {
+								Integer firstManagerId = stemp.getFirstManager();
+								Manager firstManager = managerService.selectOne(new EntityWrapper<Manager>().eq("id", firstManagerId));
+								if (null != firstManager) {
+									SendMsg.sendMsg(firstManager.getManagerPhone(), msg);
+									LOG.info("发送短信>>>联系人" + firstManager.getManagerName() + "内容:" + msg);
+								}
+							} else if (lists.size() < Integer.valueOf(SystemConfig.getProperty(StatusConstants.SERVER_THIRD_LEVEL))) {
+								Integer firstManagerId = stemp.getFirstManager();
+								Integer secondManagerId = stemp.getSecondManager();
+								List<Manager> managers = managerService.selectList(new EntityWrapper<Manager>().in("id", new Object[] { firstManagerId, secondManagerId }));
+								if (null != managers) {
+									for (Manager manager : managers) {
+										SendMsg.sendMsg(manager.getManagerPhone(), msg);
+										LOG.info("发送短信>>>联系人" + manager.getManagerName() + "内容:" + msg);
+									}
+								}
+							} else {
+								Integer firstManagerId = stemp.getFirstManager();
+								Integer secondManagerId = stemp.getSecondManager();
+								Integer thirdManager = stemp.getThirdManager();
+								Object[] object = null;
+								if (null != thirdManager) {
+									object = new Object[] { firstManagerId, secondManagerId, thirdManager };
+								} else {
+									object = new Object[] { firstManagerId, secondManagerId };
+								}
+								List<Manager> managers = managerService.selectList(new EntityWrapper<Manager>().in("id", object));
+								if (null != managers) {
+									for (Manager manager : managers) {
+										SendMsg.sendMsg(manager.getManagerPhone(), msg);
+										LOG.info("发送短信>>>联系人" + manager.getManagerName() + "内容:" + msg);
+									}
+								}
+							}
+						}
+					}
+
+					if (stemp.getStatus() == -1) {
+						StringBuilder content = new StringBuilder();
+						content.append(stemp.getName()).append("(").append(htemp.getIp()).append("):").append("获取服务器状态接口调用失败;");
+
+						String ipStatus = IPUtil.checkPing(htemp.getIp());
+						if (StringUtils.containsIgnoreCase(ipStatus, "true")) {
+							content.append("ping服务器成功;");
+						} else {
+							content.append("ping服务器失败;");
+						}
+						LOG.error("告警:" + content.toString());
+
+						MonitorAlarmLog monitorAlarmLog = new MonitorAlarmLog();
+						monitorAlarmLog.setRelationId(Integer.valueOf(stemp.getId()));
+						monitorAlarmLog.setAlarmTime(date);
+						monitorAlarmLog.setStatus(1);
+						monitorAlarmLog.setType(1);
+						monitorAlarmLog.setAlarmContent(content.toString());
+						monitorAlarmLogService.insert(monitorAlarmLog);
+
+						if (stemp.isMessage()) {
+							content.append("详情和修改通知地址:").append(StatusConstants.SERVER_LINK);
+							String msg = content.toString();
+
+							if (StringUtils.containsIgnoreCase(ipStatus, "false")) {
+								EntityWrapper<MonitorAlarmLog> malew = new EntityWrapper<MonitorAlarmLog>();
+								malew.eq("relation_id", stemp.getId());
+								malew.eq("status", 1);
+								List<MonitorAlarmLog> lists = monitorAlarmLogService.selectList(malew);
+
+								if (lists == null || (null != lists && lists.size() < Integer.valueOf(SystemConfig.getProperty(StatusConstants.SERVER_SECOND_LEVEL)))) {
+									Integer firstManagerId = stemp.getFirstManager();
+									Manager firstManager = managerService.selectOne(new EntityWrapper<Manager>().eq("id", firstManagerId));
+									if (null != firstManager) {
+										SendMsg.sendMsg(firstManager.getManagerPhone(), msg);
+										LOG.info("发送短信>>>联系人" + firstManager.getManagerName() + "内容:" + msg);
+									}
+								} else if (lists.size() < Integer.valueOf(SystemConfig.getProperty(StatusConstants.SERVER_THIRD_LEVEL))) {
+									Integer firstManagerId = stemp.getFirstManager();
+									Integer secondManagerId = stemp.getSecondManager();
+									List<Manager> managers = managerService.selectList(new EntityWrapper<Manager>().in("id", new Object[] { firstManagerId, secondManagerId }));
+									if (null != managers) {
+										for (Manager manager : managers) {
+											SendMsg.sendMsg(manager.getManagerPhone(), msg);
+											LOG.info("发送短信>>>联系人" + manager.getManagerName() + "内容:" + msg);
+										}
+									}
+								} else {
+									Integer firstManagerId = stemp.getFirstManager();
+									Integer secondManagerId = stemp.getSecondManager();
+									Integer thirdManager = stemp.getThirdManager();
+									Object[] object = null;
+									if (null != thirdManager) {
+										object = new Object[] { firstManagerId, secondManagerId, thirdManager };
+									} else {
+										object = new Object[] { firstManagerId, secondManagerId };
+									}
+									List<Manager> managers = managerService.selectList(new EntityWrapper<Manager>().in("id", object));
+									if (null != managers) {
+										for (Manager manager : managers) {
+											SendMsg.sendMsg(manager.getManagerPhone(), msg);
+											LOG.info("发送短信>>>联系人" + manager.getManagerName() + "内容:" + msg);
+										}
+									}
+								}
+							}
+
+							/*SendMsg.sendMsg(SystemConfig.getProperty(StatusConstants.DEV_TEL), msg);
+							LOG.info("发送短信>>>联系人-开发工程师" + "内容:" + content);*/
+						}
+					}
+
+					if (!flag && stemp.getStatus() == 1) {
+						// 服务器正常并且没告警 修改告警log标识
+						EntityWrapper<MonitorAlarmLog> malew = new EntityWrapper<MonitorAlarmLog>();
+						malew.eq("relation_id", stemp.getId()).eq("status", 1).eq("type", 1);
+						List<MonitorAlarmLog> alarmLogs = monitorAlarmLogService.selectList(malew);
+						if (null != alarmLogs && alarmLogs.size() > 0) {
+							for (MonitorAlarmLog monitorAlarmLog : alarmLogs) {
+								monitorAlarmLog.setStatus(0);
+								monitorAlarmLogService.update(monitorAlarmLog, new EntityWrapper<MonitorAlarmLog>().eq("relation_id", monitorAlarmLog.getRelationId()).eq("alarm_time", monitorAlarmLog.getAlarmTime()).eq("type", monitorAlarmLog.getType()));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

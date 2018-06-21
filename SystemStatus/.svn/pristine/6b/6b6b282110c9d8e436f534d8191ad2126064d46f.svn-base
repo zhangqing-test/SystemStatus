@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.mapper.HardwareMapper">
+	
+	<select id="selectInfluenceNames" resultType="Hardware">
+		SELECT
+			id AS id,
+			[name],
+			zjm,
+			fwqsx,
+			yt,
+			yu,
+			fwqxh,
+			ssjf,
+			jg,
+			uw,
+			cpu_config AS cpuConfig,
+			memory_config AS memoryConfig,
+			yp,
+			wk,
+			gxk,
+			dy,
+			cc,
+			xlh,
+			gmsj,
+			gbsj,
+			synx,
+			sdrj,
+			ssjg,
+			szjip,
+			ip,
+			first_manager AS firstManager,
+			second_manager AS secondManager,
+			third_manager AS thirdManager,
+			comments,
+			request_id AS requestId,
+			yxxt
+		FROM
+			hardware
+		WHERE
+			id IN (
+				SELECT
+					hardware_id
+				FROM
+					hardware_influence
+				WHERE
+					relation_id = #{id}
+				AND type = #{type}
+			)
+	</select>
+
+</mapper>

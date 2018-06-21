@@ -1,0 +1,158 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+<%@ page isELIgnored="false"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<c:set var="base" scope="request"><%=request.getContextPath()%></c:set>
+<script>var base = "${base}";</script>
+<div id="page-wrapper" >
+	<div class="row">
+		<div class="col-lg-12">
+			<h4 class="page-header"><button type="button" id="return" class="btn btn-link"><p class="fa fa-angle-double-left">返回列表</p></button></h4>
+		</div>
+		<!-- /.col-lg-12 -->
+	</div>
+	<!-- /.row -->
+	<div class="row">
+		<div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">硬件服务器名称</label>
+	      <label class="col-sm-10 control-label text-muted">${hardware.name }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">服务名称</label>
+	      <label class="col-sm-10 control-label text-muted">${data.name }</label>
+	    </div>
+	     <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">用途</label>
+	      <label class="col-sm-10 control-label text-muted">${data.yt }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">是否监控</label>
+	      <label class="col-sm-10 control-label text-muted">
+		  <c:if test="${jk eq true }">
+		  	是
+		  </c:if>
+		  <c:if test="${jk eq false }">
+		  	否
+		  </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">服务类型</label>
+	      <label class="col-sm-10 control-label text-muted">
+		  <c:if test="${data.type eq 1 }">
+		  	应用服务
+		  </c:if>
+		  <c:if test="${data.type eq 2 }">
+		  	数据库
+		  </c:if>
+          </label>
+	    </div>
+	    <c:forEach var="list" items="${affect }" varStatus="status">
+    	<div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">外调服务${status.index + 1 }</label>
+	      <label class="col-sm-10 control-label text-muted">${list.servicesName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">接口名称${status.index + 1 }</label>
+	      <label class="col-sm-10 control-label text-muted">${list.name }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">接口说明${status.index + 1 }</label>
+	      <label class="col-sm-10 control-label text-muted">${list.content }</label>
+	    </div>
+	    </c:forEach>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">CPU使用率阈值</label>
+	      <label class="col-sm-10 control-label text-muted">${data.cpuLevel }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">内存使用率阀值</label>
+	      <label class="col-sm-10 control-label text-muted">${data.memoryLevel }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">磁盘剩余数量阀值</label>
+	      <label class="col-sm-10 control-label text-muted">${data.spaceLevel }G</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerJob }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">一级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">${one.managerPhone }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerJob }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">二级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">${two.managerPhone }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerName }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人职位</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerJob }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">三级责任人电话</label>
+	      <label class="col-sm-10 control-label text-muted">
+	      <c:if test="${!empty three}">
+			${three.managerPhone }	      
+	      </c:if>
+		  </label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">磁盘名</label>
+	      <label class="col-sm-10 control-label text-muted">${data.spaceName }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">服务端口</label>
+	      <label class="col-sm-10 control-label text-muted">${data.port }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">重启脚本地址</label>
+	      <label class="col-sm-10 control-label text-muted">${data.restartBat }</label>
+	    </div>
+	    <div class="col-lg-12 input-sm">
+	      <label class="col-sm-2 control-label">备注说明</label>
+	      <label class="col-sm-10 control-label text-muted">${data.comments }</label>
+	    </div>
+	</div>
+	<!-- /.row -->
+</div>
+<!-- /#page-wrapper -->
+<script type="text/javascript">
+	$("#return").on("click",function(){
+		$.ajax({
+			url:base + "/OA/services",
+			success:function(data) {
+				$("#page-wrapper").replaceWith(data);
+			}
+		})
+	})
+</script>
+
+

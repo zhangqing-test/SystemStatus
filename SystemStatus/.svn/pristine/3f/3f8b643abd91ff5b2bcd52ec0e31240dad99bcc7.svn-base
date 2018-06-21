@@ -1,0 +1,5 @@
+driver=com.microsoft.sqlserver.jdbc.SQLServerDriver 
+url=jdbc:sqlserver://128.1.10.80:1433;DatabaseName=MQ
+username=MQWork
+password=MQWork123
+validationQuery=SELECT 1

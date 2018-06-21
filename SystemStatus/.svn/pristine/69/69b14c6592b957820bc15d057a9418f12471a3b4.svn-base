@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.mapper.PingAndPortInfoMapper">
+	
+	<select id="selectErrorNet" resultType="PingAndPort" parameterType="com.system.web.form.NetQueryForm">
+		SELECT DISTINCT
+			p.id,
+			p.ip,
+			p.target_ip AS targetIp,
+			p.port,
+			p.datetime,
+			p.lifecycle,
+			p.ip_name AS ipName,
+			p.target_ip_name AS targetIpName,
+			p.message,
+			p.net_name AS netName,
+			p.type,
+			p.target_port AS targetPort,
+			p.first_manager AS firstManager,
+			p.second_manager AS secondManager,
+			p.third_manager AS thirdManager,
+			p.comments,
+			p.request_id AS requestId,
+			pi.ping_status
+		FROM
+			ping_and_port p
+		LEFT JOIN ping_and_port_info pi ON p.id = pi.ping_and_port_id
+		AND p.datetime = pi.datetime
+		WHERE
+		<if test="form.ipName!=null">
+			p.ip_name like  concat(concat('%',#{form.ipName}),'%') and
+		</if>
+		<if test="form.targetName!=null">
+		   p.target_ip_name like concat(concat('%',#{form.targetName}),'%') and
+		</if>	
+		<if test="form.netStatus==0 or form.netStatus==null">
+		(pi.ping_status = 0
+		OR pi.ping_miss > 0
+		OR pi.port_status LIKE '%false%')
+		</if>
+		<if test="form.netStatus==1">
+			pi.ping_status = 0
+		</if>
+		<if test="form.netStatus==2">
+			pi.port_status LIKE '%false%'
+		</if>
+		<if test="form.netStatus==3">
+			pi.ping_miss > 0 and pi.ping_status! = 0
+		</if>
+		 ORDER BY pi.ping_status ASC
+	</select>
+
+</mapper>

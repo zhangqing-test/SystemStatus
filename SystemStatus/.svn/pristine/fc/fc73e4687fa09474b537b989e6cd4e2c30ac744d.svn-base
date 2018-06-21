@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.system.mapper.ManagerMapper">
+	
+	<select id="selectListByRelationId" resultType="Manager">
+		SELECT
+			id,
+			manager_name AS managerName,
+			manager_phone AS managerPhone
+		FROM
+			manager
+		WHERE
+			id IN (
+				SELECT
+					manager_id
+				FROM
+					manager_relation
+				WHERE
+					relation_id = #{ relationId }
+			)
+	</select>
+
+</mapper>

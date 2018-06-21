@@ -1,0 +1,102 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/task
+   		http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+
+	<!-- 定时任务类 -->
+	<!-- 获取服务器状态 -->
+	<bean name="job"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.system.quartz.LoadSystemStatusJob" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="timeout" value="0" />
+			</map>
+		</property>
+	</bean>
+	
+	<!-- 获取ping port状态 -->
+	<bean name="job2"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.system.quartz.PingAndPortJob" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="timeout" value="0" />
+			</map>
+		</property>
+	</bean>
+	
+	<!-- 清理历史数据 -->
+	<bean name="job3"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.system.quartz.CleanDataJob" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="timeout" value="0" />
+			</map>
+		</property>
+	</bean>
+	
+	<!-- 杀机构死锁进程 -->
+	<bean name="job4"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.system.quartz.KillDeadlockJob" />
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="timeout" value="0" />
+			</map>
+		</property>
+	</bean>
+
+	<!-- 触发器 -->
+	<bean id="cronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="job" />
+		<property name="cronExpression" value="0 0/5 * * * ?" />
+	</bean>
+	
+	<bean id="pingTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="job2" />
+		<property name="cronExpression" value="0 0/3 * * * ?" />
+	</bean>
+	
+	<bean id="cleanTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="job3" />
+		<property name="cronExpression" value="0 0 12 * * ?" />
+	</bean>
+	
+	<bean id="killTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="job4" />
+		<property name="cronExpression" value="0 0/15 * * * ?" />
+	</bean>
+
+	<!-- 调度工厂 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+<!-- 				<ref bean="cronTrigger" /> -->
+<!-- 				<ref bean="pingTrigger" /> -->
+<!-- 				<ref bean="cleanTrigger" /> -->
+<!-- 				<ref bean="killTrigger" /> -->
+			</list>
+		</property>
+	</bean>
+
+
+</beans>
