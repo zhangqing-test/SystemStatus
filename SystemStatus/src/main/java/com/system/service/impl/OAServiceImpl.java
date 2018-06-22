@@ -15,6 +15,7 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.system.common.annotation.SystemServiceLog;
 import com.system.common.constants.StatusConstants;
+import com.system.entity.Account;
 import com.system.entity.AffectServices;
 import com.system.entity.Hardware;
 import com.system.entity.HardwareInfluence;
@@ -27,6 +28,7 @@ import com.system.entity.ServerClient;
 import com.system.entity.Services;
 import com.system.entity.ServicesInfluence;
 import com.system.entity.ServicesUpdate;
+import com.system.service.IAccountService;
 import com.system.service.IAffectServicesService;
 import com.system.service.IHardwareInfluenceService;
 import com.system.service.IHardwareService;
@@ -40,6 +42,7 @@ import com.system.service.IServicesInfluenceService;
 import com.system.service.IServicesService;
 import com.system.service.IServicesUpdateService;
 import com.system.service.OAService;
+import com.system.webService.form.AccountForm;
 import com.system.webService.form.HardwareForm;
 import com.system.webService.form.HardwareUpdateForm;
 import com.system.webService.form.NetForm;
@@ -87,6 +90,9 @@ public class OAServiceImpl implements OAService {
 
 	@Autowired
 	private INetUpdateService netUpdateService;
+
+	@Autowired
+	private IAccountService accountService;
 
 	/**
 	 * 创建服务器监控表单
@@ -691,10 +697,21 @@ public class OAServiceImpl implements OAService {
 		return manager;
 	}
 
-	@SystemServiceLog()
+	@SystemServiceLog(description = StatusConstants.ACCOUNT_CREATE, tableType = StatusConstants.TABLE_ACCOUNT)
 	public Boolean createAccount(String str) {
-		// TODO Auto-generated method stub
-		return null;
+
+		AccountForm accountForm = JSONObject.parseObject(str, AccountForm.class);
+		Manager one = checkManager(accountForm.getYjzrr(), accountForm.getYjzrrdh(), accountForm.getYjzrrzw());
+		Manager two = checkManager(accountForm.getEjzrr(), accountForm.getEjzrrdh(), accountForm.getEjzrrzw());
+		Manager third = checkManager(accountForm.getSjzrr(), accountForm.getSjzrrdh(), accountForm.getSjzrrzw());
+		Account account = accountForm.createAccount(one, two, third);
+		boolean insert = accountService.insert(account);
+		if (!insert) {
+			LOG.error("新增开发人员账号失败:" + account.toString());
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 }

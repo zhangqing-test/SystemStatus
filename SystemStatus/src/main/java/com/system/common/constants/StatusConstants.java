@@ -62,6 +62,8 @@ public class StatusConstants {
 	public static final String OA_SERVICE_UPDATE = "服务升级";
 	/** OA生成网络升级表单 */
 	public static final String OA_NET_UPDATE = "网络升级";
+	/** 创建开发人员账号 */
+	public static final String ACCOUNT_CREATE = "账号创建";
 
 	/** hardware表 */
 	public static final int TABLE_HARDWARE = 1;
@@ -75,5 +77,7 @@ public class StatusConstants {
 	public static final int TABLE_SERVICE_UPDATE = 5;
 	/** net_update表 */
 	public static final int TABLE_NET_UPDATE = 6;
+	/** account表 */
+	public static final int TABLE_ACCOUNT = 7;
 
 }

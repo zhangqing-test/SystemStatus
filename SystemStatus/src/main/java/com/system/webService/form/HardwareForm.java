@@ -78,27 +78,20 @@ public class HardwareForm implements Serializable {
 	private String thirdManagerPhone;
 	/** 备注 */
 	private String comments;
-	
-	
+
 	private String mac;
 
 	public HardwareForm() {
 		super();
 	}
-	
-	
 
 	public String getMac() {
 		return mac;
 	}
 
-
-
 	public void setMac(String mac) {
 		this.mac = mac;
 	}
-
-
 
 	public Integer getId() {
 		return id;
@@ -388,7 +381,7 @@ public class HardwareForm implements Serializable {
 		this.comments = comments;
 	}
 
-	public HardwareForm(Integer id, String name, String zjm, Integer fwqsx, String yt, String yu, String fwqxh, String ssjf, String jg, String uw, String cpuConfig, String memoryConfig, String yp, String wk, String gxk, String dy, String cc, String xlh, Date gmsj, Date gbsj, Integer synx, String sdrj, String ssjg, String szjip, String yxxt, String ip, String firstManagerName, String firstManagerJob, String firstManagerPhone, String secondManagerName, String secondManagerJob, String secondManagerPhone, String thirdManagerName, String thirdManagerJob, String thirdManagerPhone, String comments,String mac) {
+	public HardwareForm(Integer id, String name, String zjm, Integer fwqsx, String yt, String yu, String fwqxh, String ssjf, String jg, String uw, String cpuConfig, String memoryConfig, String yp, String wk, String gxk, String dy, String cc, String xlh, Date gmsj, Date gbsj, Integer synx, String sdrj, String ssjg, String szjip, String yxxt, String ip, String firstManagerName, String firstManagerJob, String firstManagerPhone, String secondManagerName, String secondManagerJob, String secondManagerPhone, String thirdManagerName, String thirdManagerJob, String thirdManagerPhone, String comments, String mac) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -426,7 +419,7 @@ public class HardwareForm implements Serializable {
 		this.thirdManagerJob = thirdManagerJob;
 		this.thirdManagerPhone = thirdManagerPhone;
 		this.comments = comments;
-		this.mac=mac;
+		this.mac = mac;
 	}
 
 	public Hardware createHardware(Manager one, Manager two, Manager third) {
