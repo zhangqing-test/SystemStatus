@@ -322,6 +322,13 @@
 		                    </ul>
 		                    <!-- /.nav-second-level -->
 		                </li>
+	                </c:if>	
+	                <c:if test="${flag==true}">
+		                <li>
+		                    <a href="javaScript:void(0)" url="${pageContext.request.contextPath}/OA/account"><i class="fa fa-laptop fa-fw"></i> 服务器账号管理</a>
+		                   
+		                    <!-- /.nav-second-level -->
+		                </li>
 	                </c:if>	   
 	            </ul><!-- /.sidebar-collapse -->
 	        </div><!-- /.sidebar-collapse -->

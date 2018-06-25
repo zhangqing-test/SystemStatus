@@ -1,5 +1,6 @@
 package com.system.web;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,8 +19,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.system.common.constants.StatusConstants;
 import com.system.common.controller.BaseController;
 import com.system.common.util.WebServiceUtil;
+import com.system.entity.Account;
 import com.system.entity.AffectServices;
 import com.system.entity.Hardware;
 import com.system.entity.Manager;
@@ -27,6 +30,7 @@ import com.system.entity.PingAndPort;
 import com.system.entity.ProcessMsg;
 import com.system.entity.Services;
 import com.system.entity.Users;
+import com.system.service.IAccountService;
 import com.system.service.IAffectServicesService;
 import com.system.service.IHardwareService;
 import com.system.service.IManagerService;
@@ -61,6 +65,65 @@ public class AdminController extends BaseController {
 
 	@Autowired
 	private IProcessInfoService processInfoService;
+
+	@Autowired
+	private IAccountService accountService;
+
+	@RequestMapping("/OA/account/query")
+	@ResponseBody
+	public String accountList(DatatableForm form, HttpServletRequest request, Model model) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		/*
+		 * String hardwareName = request.getParameter("fwqmc"); String
+		 * serviceName = request.getParameter("rjfwmc");
+		 */
+		String hardwareAccountName = request.getParameter("yjzhm");
+		String serviceAccountName = request.getParameter("rjzhm");
+
+		EntityWrapper<Account> ew = new EntityWrapper<Account>();
+		/*
+		 * if (!"".equals(hardwareName)) { ew.eq("fwqmc", hardwareName); } if
+		 * (!"".equals(serviceName)) { ew.eq("rjfwmc", serviceName); }
+		 */
+		if (!"".equals(hardwareAccountName) && null != hardwareAccountName) {
+			ew.eq("hardware_account", hardwareAccountName);
+		}
+		if (!"".equals(serviceAccountName) && null != serviceAccountName) {
+			ew.eq("service_account", serviceAccountName);
+		}
+		Integer count = accountService.selectCount(ew);
+		if (count != 0) {
+			SimpleDateFormat sdf = new SimpleDateFormat(StatusConstants.SDF);
+			List<Account> list = accountService.paginationQuery(form, ew);
+			List<List<String>> data = new ArrayList<List<String>>();
+			for (Account a : list) {
+				List<String> detail = new ArrayList<String>();
+				List<Hardware> hd = hardwareService.selectList(new EntityWrapper<Hardware>().eq("id", a.getName()));
+				detail.add(hd.get(0).getName());
+				List<Services> sc = servicesService.selectList(new EntityWrapper<Services>().eq("id", a.getServices()));
+				detail.add(sc.get(0).getName());
+				detail.add(a.getHardware_account());
+				detail.add(a.getService_account());
+				detail.add(a.getDay().toString());
+				detail.add(sdf.format(a.getTime()).toString());
+				data.add(detail);
+			}
+			result.put("data", data);
+		} else {
+			result.put("data", "");
+		}
+		result.put("draw", form.getDraw());
+		result.put("recordsTotal", count);
+		result.put("recordsFiltered", count);
+		JSONObject jsonObject = new JSONObject(result);
+		String jsonString = jsonObject.toJSONString();
+		return jsonString;
+	}
+
+	@RequestMapping("/OA/account")
+	public String account(HttpServletRequest request, Model model) {
+		return "accountList";
+	}
 
 	@RequestMapping("/OA/services/processget")
 	@ResponseBody
